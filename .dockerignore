@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.git/
+.env
+.env.*
+test/
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.mcp.json
+*.log
