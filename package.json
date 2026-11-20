@@ -1,0 +1,50 @@
+{
+  "name": "mercadopago-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for inspecting Mercado Pago payments, orders, preferences, and webhooks. Read-only by default.",
+  "license": "MIT",
+  "author": "Matías Sánchez González <pellemarket@gmail.com> (https://www.matiasgs.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DevModee/mercadopago-mcp.git"
+  },
+  "homepage": "https://github.com/DevModee/mercadopago-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/DevModee/mercadopago-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mercadopago",
+    "mercado-pago",
+    "payments",
+    "webhooks"
+  ],
+  "type": "module",
+  "bin": {
+    "mercadopago-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"test/**/*.test.ts\"",
+    "prepublishOnly": "npm run typecheck && npm run build && npm test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

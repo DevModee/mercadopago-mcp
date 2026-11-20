@@ -1,0 +1,29 @@
+# Dependencies & build
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs & runtime
+logs/
+*.log
+npm-debug.log*
+
+# OS & editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# AI / local assistant files (never commit or push)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.mcp.json
+GEMINI.md
+.cursor/
