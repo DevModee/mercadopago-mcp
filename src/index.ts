@@ -29,7 +29,11 @@ async function main(): Promise<void> {
   }
 
   const client = new MercadoPagoClient({ accessToken: process.env["MP_ACCESS_TOKEN"] });
-  const server = createServer({ client, allowWrites: options.allowWrites });
+  const server = createServer({
+    client,
+    allowWrites: options.allowWrites,
+    webhookSecret: process.env["MP_WEBHOOK_SECRET"],
+  });
   await server.connect(new StdioServerTransport());
   console.error(
     `mercadopago-mcp ${VERSION} on stdio (${options.allowWrites ? "writes enabled" : "read-only"})`,
