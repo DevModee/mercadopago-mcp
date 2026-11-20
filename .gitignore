@@ -19,11 +19,3 @@ npm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
-
-# AI / local assistant files (never commit or push)
-CLAUDE.md
-CLAUDE.local.md
-.claude/
-.mcp.json
-GEMINI.md
-.cursor/
