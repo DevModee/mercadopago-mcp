@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CliUsageError, HELP_TEXT, VERSION, parseCliArgs, type CliOptions } from "./cli.js";
+import { MercadoPagoClient } from "./mp/client.js";
 import { createServer } from "./server.js";
 
 async function main(): Promise<void> {
@@ -27,7 +28,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  const server = createServer({ allowWrites: options.allowWrites });
+  const client = new MercadoPagoClient({ accessToken: process.env["MP_ACCESS_TOKEN"] });
+  const server = createServer({ client, allowWrites: options.allowWrites });
   await server.connect(new StdioServerTransport());
   console.error(
     `mercadopago-mcp ${VERSION} on stdio (${options.allowWrites ? "writes enabled" : "read-only"})`,
