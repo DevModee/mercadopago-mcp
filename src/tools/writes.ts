@@ -119,7 +119,7 @@ export function buildRefundRequest(input: RefundPaymentInput): { amount?: number
   throw new ToolInputError("Pass amount for a partial refund or full_refund=true for a full refund");
 }
 
-export function registerWriteTools(server: McpServer, client: MercadoPagoClient): void {
+export function registerPreferenceTools(server: McpServer, client: MercadoPagoClient): void {
   server.registerTool(
     "create_preference",
     {
@@ -145,7 +145,11 @@ export function registerWriteTools(server: McpServer, client: MercadoPagoClient)
         };
       }),
   );
+}
 
+// Refunds move money out of the account, so they sit behind their own flag
+// instead of riding along with preference creation.
+export function registerRefundTools(server: McpServer, client: MercadoPagoClient): void {
   server.registerTool(
     "refund_payment",
     {

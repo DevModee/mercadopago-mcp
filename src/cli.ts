@@ -10,17 +10,20 @@ export const HELP_TEXT = `mercadopago-mcp ${VERSION}
 MCP server for Mercado Pago. Speaks JSON-RPC over stdio.
 
 Usage:
-  mercadopago-mcp [--allow-writes]
+  mercadopago-mcp [--allow-writes] [--allow-refunds]
 
 Options:
-  --allow-writes   Register create_preference and refund_payment.
-                   Same as MP_ALLOW_WRITES=true.
-  -h, --help       Show this help and exit.
-  -v, --version    Print the version and exit.
+  --allow-writes    Register create_preference. Same as MP_ALLOW_WRITES=true.
+  --allow-refunds   Register refund_payment. Same as MP_ALLOW_REFUNDS=true.
+  -h, --help        Show this help and exit.
+  -v, --version     Print the version and exit.
+
+Without flags the server is read-only.
 
 Environment:
   MP_ACCESS_TOKEN     Mercado Pago access token. Required by API-backed tools.
-  MP_ALLOW_WRITES     Set to "true" to enable write tools.
+  MP_ALLOW_WRITES     Set to "true" to enable create_preference.
+  MP_ALLOW_REFUNDS    Set to "true" to enable refund_payment.
   MP_WEBHOOK_SECRET   Default secret for verify_webhook_signature.
 `;
 
@@ -28,6 +31,7 @@ export interface CliOptions {
   help: boolean;
   version: boolean;
   allowWrites: boolean;
+  allowRefunds: boolean;
 }
 
 export class CliUsageError extends Error {
@@ -42,6 +46,7 @@ export function parseCliArgs(
     help: false,
     version: false,
     allowWrites: isTruthy(env["MP_ALLOW_WRITES"]),
+    allowRefunds: isTruthy(env["MP_ALLOW_REFUNDS"]),
   };
 
   for (const arg of argv) {
@@ -56,6 +61,9 @@ export function parseCliArgs(
         break;
       case "--allow-writes":
         options.allowWrites = true;
+        break;
+      case "--allow-refunds":
+        options.allowRefunds = true;
         break;
       default:
         throw new CliUsageError(`Unknown argument: ${arg}`);

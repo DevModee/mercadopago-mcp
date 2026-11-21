@@ -5,11 +5,12 @@ import { registerCatalogTools } from "./tools/catalog.js";
 import { registerOrderTools } from "./tools/orders.js";
 import { registerPaymentTools } from "./tools/payments.js";
 import { registerWebhookTools } from "./tools/webhooks.js";
-import { registerWriteTools } from "./tools/writes.js";
+import { registerPreferenceTools, registerRefundTools } from "./tools/writes.js";
 
 export interface ServerOptions {
   client: MercadoPagoClient;
   allowWrites: boolean;
+  allowRefunds: boolean;
   webhookSecret?: string | undefined;
 }
 
@@ -19,6 +20,7 @@ export function createServer(options: ServerOptions): McpServer {
   registerOrderTools(server, options.client);
   registerCatalogTools(server, options.client);
   registerWebhookTools(server, options.webhookSecret);
-  if (options.allowWrites) registerWriteTools(server, options.client);
+  if (options.allowWrites) registerPreferenceTools(server, options.client);
+  if (options.allowRefunds) registerRefundTools(server, options.client);
   return server;
 }

@@ -32,11 +32,13 @@ async function main(): Promise<void> {
   const server = createServer({
     client,
     allowWrites: options.allowWrites,
+    allowRefunds: options.allowRefunds,
     webhookSecret: process.env["MP_WEBHOOK_SECRET"],
   });
   await server.connect(new StdioServerTransport());
+  const enabled = [options.allowWrites && "writes", options.allowRefunds && "refunds"].filter(Boolean);
   console.error(
-    `mercadopago-mcp ${VERSION} on stdio (${options.allowWrites ? "writes enabled" : "read-only"})`,
+    `mercadopago-mcp ${VERSION} on stdio (${enabled.length ? `${enabled.join(" + ")} enabled` : "read-only"})`,
   );
 }
 

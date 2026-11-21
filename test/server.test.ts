@@ -15,10 +15,11 @@ const READ_TOOLS = [
   "search_payments",
   "verify_webhook_signature",
 ];
-const WRITE_TOOLS = ["create_preference", "refund_payment"];
+const names = (tools: Array<{ name: string }>) => tools.map((t) => t.name).sort();
 
 interface ConnectOptions {
-  allowWrites: boolean;
+  allowWrites?: boolean;
+  allowRefunds?: boolean;
   token?: string;
   fetch?: FetchLike;
   webhookSecret?: string;
@@ -31,7 +32,8 @@ async function connect(options: ConnectOptions): Promise<Client> {
   });
   const server = createServer({
     client: mpClient,
-    allowWrites: options.allowWrites,
+    allowWrites: options.allowWrites ?? false,
+    allowRefunds: options.allowRefunds ?? false,
     webhookSecret: options.webhookSecret,
   });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -49,27 +51,51 @@ function text(result: unknown): string {
 
 describe("tool registration", () => {
   it("registers only read-only tools by default", async () => {
-    const client = await connect({ allowWrites: false });
+    const client = await connect({});
     const { tools } = await client.listTools();
-    assert.deepEqual(tools.map((t) => t.name).sort(), READ_TOOLS);
+    assert.deepEqual(names(tools), READ_TOOLS);
     for (const tool of tools) assert.equal(tool.annotations?.readOnlyHint, true, tool.name);
     await client.close();
   });
 
-  it("adds write tools with allowWrites", async () => {
+  it("adds create_preference but not refund_payment with allowWrites", async () => {
     const client = await connect({ allowWrites: true });
     const { tools } = await client.listTools();
-    assert.deepEqual(tools.map((t) => t.name).sort(), [...READ_TOOLS, ...WRITE_TOOLS].sort());
+    assert.deepEqual(names(tools), [...READ_TOOLS, "create_preference"].sort());
+    await client.close();
+  });
+
+  it("adds refund_payment but not create_preference with allowRefunds", async () => {
+    const client = await connect({ allowRefunds: true });
+    const { tools } = await client.listTools();
+    assert.deepEqual(names(tools), [...READ_TOOLS, "refund_payment"].sort());
     const refund = tools.find((t) => t.name === "refund_payment");
     assert.equal(refund?.annotations?.destructiveHint, true);
     await client.close();
   });
 
-  it("refuses calls to write tools when they are not registered", async () => {
-    const client = await connect({ allowWrites: false });
+  it("registers both write tools when both flags are set", async () => {
+    const client = await connect({ allowWrites: true, allowRefunds: true });
+    const { tools } = await client.listTools();
+    assert.deepEqual(names(tools), [...READ_TOOLS, "create_preference", "refund_payment"].sort());
+    await client.close();
+  });
+
+  it("refuses refunds when only allowWrites is set", async () => {
+    const client = await connect({ allowWrites: true });
     const result = await client.callTool({
       name: "refund_payment",
       arguments: { payment_id: "1", full_refund: true },
+    });
+    assert.equal(result.isError, true);
+    await client.close();
+  });
+
+  it("refuses preference creation when only allowRefunds is set", async () => {
+    const client = await connect({ allowRefunds: true });
+    const result = await client.callTool({
+      name: "create_preference",
+      arguments: { items: [{ title: "x", quantity: 1, unit_price: 1 }] },
     });
     assert.equal(result.isError, true);
     await client.close();
@@ -157,14 +183,14 @@ describe("tool calls", () => {
     await client.close();
   });
 
-  it("posts refunds with the explicit amount when writes are enabled", async () => {
+  it("posts refunds with the explicit amount when refunds are enabled", async () => {
     const mock = mockFetch(() =>
       jsonResponse(
         { id: 1, payment_id: 123, amount: 10, status: "approved", date_created: "2026-01-15" },
         201,
       ),
     );
-    const client = await connect({ allowWrites: true, token: FAKE_TOKEN, fetch: mock.fetch });
+    const client = await connect({ allowRefunds: true, token: FAKE_TOKEN, fetch: mock.fetch });
     const result = await client.callTool({
       name: "refund_payment",
       arguments: { payment_id: "123", amount: 10 },
