@@ -164,6 +164,7 @@ The result includes `valid`, a `reason`, and the exact `manifest` that was signe
 - **Validated inputs.** Every tool argument is checked with zod before any request is made. IDs are path-encoded, and URLs passed to `create_preference` must be HTTPS.
 - **Stdout is protocol-only.** Diagnostics go to stderr, so nothing corrupts the JSON-RPC stream.
 - **15 second timeout** on every API call.
+- **Keep the token scoped to this server.** Pass `MP_ACCESS_TOKEN` only in this server's MCP `env` block rather than your global shell, and avoid pairing it with a generic HTTP or `curl` tool that could bypass disabled write or refund gates.
 
 Use a token with the smallest scope that covers what you need, and a test user's token for anything involving writes.
 
