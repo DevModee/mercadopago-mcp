@@ -166,7 +166,7 @@ The result includes `valid`, a `reason`, and the exact `manifest` that was signe
 - **15 second timeout** on every API call.
 - **Keep the token scoped to this server.** Pass `MP_ACCESS_TOKEN` only in this server's MCP `env` block rather than your global shell, and avoid pairing it with a generic HTTP or `curl` tool that could bypass disabled write or refund gates.
 
-Use a token with the smallest scope that covers what you need, and a test user's token for anything involving writes.
+Use a token with the smallest scope that covers what you need, and a test user's token for anything involving writes. Also listed in the [HOL Guard catalog](https://hol.org/guard/extensions/mcp.mercadopago-mcp).
 
 ## Environment variables
 
