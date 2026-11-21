@@ -5,6 +5,7 @@
 MCP server to inspect Mercado Pago payments, orders, preferences, and webhook signatures from your AI client.
 
 [![npm version](https://img.shields.io/npm/v/mercadopago-mcp.svg)](https://www.npmjs.com/package/mercadopago-mcp)
+[![Glama MCP server](https://glama.ai/mcp/servers/DevModee/mercadopago-mcp/badges/score.svg)](https://glama.ai/mcp/servers/DevModee/mercadopago-mcp)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6.svg)](tsconfig.json)
 [![Read-only by default](https://img.shields.io/badge/writes-off%20by%20default-2ea44f.svg)](#security-model)
