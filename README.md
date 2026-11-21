@@ -12,7 +12,7 @@ MCP server to inspect Mercado Pago payments, orders, preferences, and webhook si
 
 </div>
 
-Ask your assistant why a payment was rejected, what a merchant order contains, or whether a webhook signature is valid, without leaving the editor. Write tools (create a preference, refund a payment) only exist when you start the server with `--allow-writes`.
+Ask your assistant why a payment was rejected, what a merchant order contains, or whether a webhook signature is valid, without leaving the editor. Nothing can change state on your account unless you opt in: `--allow-writes` adds preference creation, and refunds need their own `--allow-refunds`.
 
 Built from running Mercado Pago in production for a web and Android marketplace, where most of the debugging time went into payment lookups, order reconciliation, and webhook signatures.
 
@@ -99,13 +99,20 @@ Check it with `claude mcp list`. To share the server with a team, commit a proje
 
 ### Enabling write tools
 
-Add `--allow-writes` to the args, or set `MP_ALLOW_WRITES=true` in `env`:
+Each gate is independent. Add the flag to `args`, or set the env var in `env`:
+
+| Flag | Env var | Registers |
+| --- | --- | --- |
+| `--allow-writes` | `MP_ALLOW_WRITES=true` | `create_preference` |
+| `--allow-refunds` | `MP_ALLOW_REFUNDS=true` | `refund_payment` |
 
 ```json
-"args": ["-y", "mercadopago-mcp", "--allow-writes"]
+"args": ["-y", "mercadopago-mcp", "--allow-writes", "--allow-refunds"]
 ```
 
 Use a test user's token while you try this out.
+
+**Upgrading from 0.1.0:** `--allow-writes` used to register `refund_payment` too. From 0.2.0 it only registers `create_preference`; add `--allow-refunds` if you still want refunds.
 
 ## Tools
 
@@ -120,14 +127,14 @@ Use a test user's token while you try this out.
 | `list_payment_methods` | Payment methods for the account or a `site_id` (MLA, MLB, MLM, ...), optionally filtered by `payment_type_id`. |
 | `verify_webhook_signature` | Checks an `x-signature` header locally with HMAC-SHA256. Works offline and without `MP_ACCESS_TOKEN`. |
 
-### Write (only with `--allow-writes`)
+### Write-gated
 
-| Tool | What it does |
-| --- | --- |
-| `create_preference` | Creates a Checkout Pro preference and returns `id` and `init_point`. |
-| `refund_payment` | Refunds a payment. Requires either `amount` (partial) or `full_refund: true`; a call with neither is rejected so a missing amount never means "refund everything". |
+| Tool | Gate | What it does |
+| --- | --- | --- |
+| `create_preference` | `--allow-writes` / `MP_ALLOW_WRITES=true` | Creates a Checkout Pro preference and returns `id` and `init_point`. No money moves until a buyer pays. |
+| `refund_payment` | `--allow-refunds` / `MP_ALLOW_REFUNDS=true` | Refunds a payment. Requires either `amount` (partial) or `full_refund: true`; a call with neither is rejected so a missing amount never means "refund everything". |
 
-Both write tools accept an optional `idempotency_key`. Reuse it when retrying so Mercado Pago does not apply the operation twice. Without it, every call gets a fresh key.
+Both tools accept an optional `idempotency_key`. Reuse it when retrying so Mercado Pago does not apply the operation twice. Without it, every call gets a fresh key.
 
 ## Verifying webhooks
 
@@ -150,7 +157,8 @@ The result includes `valid`, a `reason`, and the exact `manifest` that was signe
 
 ## Security model
 
-- **Read-only by default.** Write tools are not registered, so the model cannot call them, unless you pass `--allow-writes` or `MP_ALLOW_WRITES=true`.
+- **Read-only by default.** With no flags, no tool that changes state is registered, so the model cannot call one.
+- **Refunds gated separately.** `--allow-writes` enables `create_preference` only. `refund_payment` moves money out of the account and needs `--allow-refunds` or `MP_ALLOW_REFUNDS=true` on its own, so enabling checkout links never enables refunds by accident.
 - **Token loaded lazily.** The server starts without `MP_ACCESS_TOKEN`; API-backed tools return a clear error until it is set. `--help`, `--version`, and webhook verification never need it.
 - **No secrets in output.** The access token is stripped from any error text returned by the API, and webhook results never echo the secret.
 - **Validated inputs.** Every tool argument is checked with zod before any request is made. IDs are path-encoded, and URLs passed to `create_preference` must be HTTPS.
@@ -164,7 +172,8 @@ Use a token with the smallest scope that covers what you need, and a test user's
 | Variable | Purpose |
 | --- | --- |
 | `MP_ACCESS_TOKEN` | Mercado Pago access token. Required by every tool except `verify_webhook_signature`. |
-| `MP_ALLOW_WRITES` | `true` registers the write tools. Same as `--allow-writes`. |
+| `MP_ALLOW_WRITES` | `true` registers `create_preference`. Same as `--allow-writes`. |
+| `MP_ALLOW_REFUNDS` | `true` registers `refund_payment`. Same as `--allow-refunds`. |
 | `MP_WEBHOOK_SECRET` | Default secret for `verify_webhook_signature`. |
 
 ## Development

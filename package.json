@@ -1,6 +1,6 @@
 {
   "name": "mercadopago-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for inspecting Mercado Pago payments, orders, preferences, and webhooks. Read-only by default.",
   "license": "MIT",
   "author": "Matías Sánchez González <pellemarket@gmail.com> (https://www.matiasgs.com)",
